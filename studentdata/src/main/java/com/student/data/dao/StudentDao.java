@@ -31,6 +31,8 @@ public interface StudentDao {
 	public Boolean batchUpdateStudentDetailsCombinationJdbc(List<StudentDto> updateOp);
 	public Boolean batchUpdateStudentDetailsCombinationJdbcInsert(List<StudentDto> insertOp);
 	public List<FetchStudentDetailsWithMarksAndDepartment> studentDetailsWithMarks();
+	
+	
 	public List<FetchStudentDetailsWithMarksAndDepartmentNames> studentDetailsWithMarksAndDepartment();
 	public List<Map<String, Object>> fetchStudentDetailsUsingQueryForList(FetchStudentDetails fetchStudentDetails);
 	public Boolean insertStudentDetailsWithKeyHolder(List<InsertStudentDetailsWithDepartment> insertStudentDetailsWithDepartment);
