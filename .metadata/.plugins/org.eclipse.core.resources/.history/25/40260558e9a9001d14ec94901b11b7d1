@@ -1,0 +1,300 @@
+package com.student.data.service;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.jdbc.core.namedparam.SqlParameterSourceUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import com.student.data.beans.FetchStudentDetails;
+import com.student.data.beans.FetchStudentDetailsWithMarksAndDepartment;
+import com.student.data.beans.FetchStudentDetailsWithMarksAndDepartmentNames;
+import com.student.data.beans.FetchStudentDetailsWithMarksAndDepartmentNamesWithNoReplications;
+import com.student.data.beans.FetchStudentDetailsWithMarksAndDepartmentWithNoReplications;
+import com.student.data.beans.InsertOrUpdateStudentDetails;
+import com.student.data.beans.InsertStudentDetails;
+import com.student.data.beans.InsertStudentDetailsWithDepartment;
+import com.student.data.beans.StudentDepartment;
+import com.student.data.beans.StudentDto;
+import com.student.data.beans.StudentMarks;
+import com.student.data.beans.UpdateStudentDetails;
+import com.student.data.dao.StudentDao;
+
+@Service
+public class StudentServiceImplementation implements StudentService {
+	@Value("${queryForStudentDetailsUsingQuery}")
+	String queryForStudentDetailsUsingQuery;
+	@Autowired
+	StudentDao studentDao;
+
+	@Override
+	public Boolean insertStudentDetailsUsingMap(InsertStudentDetails insertStudentDetails) {
+
+		return studentDao.insertStudentDetailsUsingMap(insertStudentDetails);
+	}
+
+	@Override
+	public Boolean insertStudentDetailsUsingMapSqlParam(InsertStudentDetails insertStudentDetails) {
+
+		return studentDao.insertStudentDetailsUsingMapSqlParam(insertStudentDetails);
+	}
+
+	@Override
+	public Boolean insertStudentDetailsUsingBeanProperySqlparam(InsertStudentDetails insertStudentDetails) {
+
+		return studentDao.insertStudentDetailsUsingBeanProperySqlparam(insertStudentDetails);
+	}
+
+	@Override
+	public Boolean updateStudentDetails(UpdateStudentDetails updateStudentDetails) {
+
+		return studentDao.updateStudentDetails(updateStudentDetails);
+	}
+
+	@Override
+	public Boolean batchUpdateStudentDetails(List<InsertStudentDetails> insertStudentDetails) {
+
+		return studentDao.batchUpdateStudentDetails(insertStudentDetails);
+	}
+
+	@Override
+	public Boolean batchUpdateUsingBatchSetter(List<InsertStudentDetails> insertStudentDetails) {
+
+		return studentDao.batchUpdateUsingBatchSetter(insertStudentDetails);
+	}
+
+	@Override
+	public Boolean batchUpdateUsingSqlParamSource(List<InsertStudentDetails> insertStudentDetails) {
+
+		return studentDao.batchUpdateUsingSqlParamSource(insertStudentDetails);
+	}
+
+	@Override
+	public Boolean insertOrUpdateStudentDetails(InsertOrUpdateStudentDetails insertOrUpdateStudentDetails) {
+		List<StudentDto> studentDtoList = insertOrUpdateStudentDetails.getStudentDtoList();
+		// Checks If the List students is null or empty and returns false
+
+		if (studentDtoList == null || studentDtoList.isEmpty()) {
+			return false;
+		}
+		List<StudentDto> saveList = new ArrayList<StudentDto>();
+		List<StudentDto> updateList = new ArrayList<StudentDto>();
+
+		for (StudentDto studentDto : studentDtoList) {
+			studentDto.setOrgId(insertOrUpdateStudentDetails.getOrgId());
+			// Checks if the object as Id or not. if it has id, it is inserted in the insert
+			// List
+			if (studentDto.getStudentId() == null) {
+
+				saveList.add(studentDto);
+			} else {
+
+				updateList.add(studentDto);
+			}
+		}
+
+		Boolean update = false;
+		Boolean insert = false;
+		if (!CollectionUtils.isEmpty(updateList)) {
+			SqlParameterSource[] updateBatch = SqlParameterSourceUtils.createBatch(updateList);
+			update = studentDao.batchUpdateStudentDetailsCombination(updateBatch);
+		}
+		if (!CollectionUtils.isEmpty(saveList)) {
+			SqlParameterSource[] saveBatch = SqlParameterSourceUtils.createBatch(saveList);
+			insert = studentDao.batchUpdateStudentDetailsCombinationInsert(saveBatch);
+		}
+
+		return insert && update;
+	}
+
+	@Override
+	public Boolean insertOrUpdateStudentDetailsJdbc(InsertOrUpdateStudentDetails insertOrUpdateStudentDetails) {
+
+		List<StudentDto> studentDtoList = insertOrUpdateStudentDetails.getStudentDtoList();
+		// Checks If the List students is null or empty and returns false
+		if (studentDtoList == null || studentDtoList.isEmpty()) {
+			return false;
+		}
+		List<StudentDto> insertList = new ArrayList<>();
+		List<StudentDto> updateList = new ArrayList<>();
+
+		for (StudentDto studentDto : studentDtoList) {
+			// Checks if the object as Id or not. if it has id, it is inserted in the insert
+			// List
+			if (studentDto.getStudentId() == null) {
+				studentDto.setOrgId(insertOrUpdateStudentDetails.getOrgId());
+				insertList.add(studentDto);
+
+			} else {
+				studentDto.setOrgId(insertOrUpdateStudentDetails.getOrgId());
+				updateList.add(studentDto);
+
+			}
+
+		}
+		boolean insertDetails = studentDao.batchUpdateStudentDetailsCombinationJdbcInsert(insertList);
+		boolean updateDetails = studentDao.batchUpdateStudentDetailsCombinationJdbc(updateList);
+		return insertDetails && updateDetails;
+
+	}
+
+	@Override
+	public FetchStudentDetails fetchStudentDetailsUsingId(FetchStudentDetails FetchStudentDetails) {
+
+		return studentDao.fetchStudentDetailsUsingId(FetchStudentDetails);
+	}
+
+	@Override
+	public List<FetchStudentDetails> fetchStudentDetailsUsingQuery(FetchStudentDetails fetchStudentDetails) {
+
+		return studentDao.fetchStudentDetailsUsingQuery(fetchStudentDetails);
+	}
+
+	@Override
+	public FetchStudentDetails fetchStudentDetailsUsingQueryForMap(FetchStudentDetails FetchStudentDetails) {
+		Map<String, Object> map = studentDao.fetchStudentDetailsUsingQueryForMap(FetchStudentDetails);
+		FetchStudentDetails fetchStudentDetails = new FetchStudentDetails();
+		fetchStudentDetails.setAddress((String) map.get("address"));
+		fetchStudentDetails.setBirthDate((String) map.get("birth_date"));
+		fetchStudentDetails.setCityNm((String) map.get("city_nm"));
+		fetchStudentDetails.setDistrictNm((String) map.get("district_nm"));
+		fetchStudentDetails.setMobileNm((String) map.get("mobile_nm"));
+		fetchStudentDetails.setNm((String) map.get("nm"));
+		fetchStudentDetails.setTownNm((String) map.get("town_nm"));
+		fetchStudentDetails.setVillageNm((String) map.get("village_nm"));
+		fetchStudentDetails.setStudentId((Integer) map.get("student_id"));
+		fetchStudentDetails.setOrgId((Long) map.get("org_id"));
+
+		return fetchStudentDetails;
+	}
+
+	/*
+	 * Converted the List Of Object to a Pojo that a List Of Sub table plus the data
+	 * from main table set is used to check for the id and
+	 * 
+	 */
+	@SuppressWarnings("null")
+	@Override
+	public List<FetchStudentDetailsWithMarksAndDepartmentWithNoReplications> studentDetailsWithMarks() {
+		List<FetchStudentDetailsWithMarksAndDepartmentWithNoReplications> listStudentDetailsWithMarks = new ArrayList<>();
+		Set<Long> set = new HashSet<>();
+		FetchStudentDetailsWithMarksAndDepartmentWithNoReplications fetchStudentDetailsWithMarksAndDepartmentWithNoReplications = null;
+		List<StudentMarks> studentMarkList = null;
+		List<FetchStudentDetailsWithMarksAndDepartment> fetchStudentDetailsWithMarksList = studentDao
+				.studentDetailsWithMarks();
+		for (FetchStudentDetailsWithMarksAndDepartment fetchStudentDetailsWithMarksAndDepartment : fetchStudentDetailsWithMarksList) {
+			/*
+			 * Set check for Duplicate Id and appends all the data in the Object List
+			 */
+			if (set.add(fetchStudentDetailsWithMarksAndDepartment.getStudentId())) {
+				if (fetchStudentDetailsWithMarksAndDepartmentWithNoReplications != null) {
+					fetchStudentDetailsWithMarksAndDepartmentWithNoReplications.setMarklist(studentMarkList);
+					listStudentDetailsWithMarks.add(fetchStudentDetailsWithMarksAndDepartmentWithNoReplications);
+				}
+				fetchStudentDetailsWithMarksAndDepartmentWithNoReplications = new FetchStudentDetailsWithMarksAndDepartmentWithNoReplications();
+				studentMarkList = new ArrayList<StudentMarks>();
+				fetchStudentDetailsWithMarksAndDepartmentWithNoReplications
+						.setStudentId(fetchStudentDetailsWithMarksAndDepartment.getStudentId());
+				fetchStudentDetailsWithMarksAndDepartmentWithNoReplications
+						.setAddress(fetchStudentDetailsWithMarksAndDepartment.getAddress());
+				fetchStudentDetailsWithMarksAndDepartmentWithNoReplications
+						.setCityNm(fetchStudentDetailsWithMarksAndDepartment.getCityNm());
+				fetchStudentDetailsWithMarksAndDepartmentWithNoReplications
+						.setName(fetchStudentDetailsWithMarksAndDepartment.getName());
+
+			}
+			StudentMarks studentMarks = new StudentMarks(fetchStudentDetailsWithMarksAndDepartment.getTotalMarks(),
+					fetchStudentDetailsWithMarksAndDepartment.getStage(),
+					fetchStudentDetailsWithMarksAndDepartment.getMarksId());
+			if (fetchStudentDetailsWithMarksAndDepartment.getTotalMarks() != null
+					|| fetchStudentDetailsWithMarksAndDepartment.getStage() != null
+					|| fetchStudentDetailsWithMarksAndDepartment.getMarksId() != null) {
+
+				studentMarkList.add(studentMarks);
+
+			}
+
+		}
+
+		fetchStudentDetailsWithMarksAndDepartmentWithNoReplications.setMarklist(studentMarkList);
+		listStudentDetailsWithMarks.add(fetchStudentDetailsWithMarksAndDepartmentWithNoReplications);
+
+		return listStudentDetailsWithMarks;
+	}
+
+	@Override
+	public List<Map<String, Object>> fetchStudentDetailsUsingQueryForList(FetchStudentDetails fetchStudentDetails) {
+
+		return studentDao.fetchStudentDetailsUsingQueryForList(fetchStudentDetails);
+	}
+
+	@Override
+	public Long insertStudentDetailsWithKeyHolder(
+			List<InsertStudentDetailsWithDepartment> insertStudentDetailsWithDepartment) {
+
+		return studentDao.insertStudentDetailsWithKeyHolder(insertStudentDetailsWithDepartment);
+	}
+
+	@Override
+	public List<FetchStudentDetailsWithMarksAndDepartmentNamesWithNoReplications> studentDetailsWithMarksAndDepartment() {
+		List<FetchStudentDetailsWithMarksAndDepartmentNamesWithNoReplications> listStudentDetailsWithMarksAndDepartment = new ArrayList<>();
+		Set<Long> set = new HashSet<>();
+		Set<Long> setMarks= new HashSet<>();
+		Set<StudentDepartment> setDepartment=new HashSet<>();
+		
+		FetchStudentDetailsWithMarksAndDepartmentNamesWithNoReplications fetchStudentDetailsWithMarksAndDepartmentNamesWithNoReplications = null;
+		List<StudentMarks> studentMarkList = null;
+		List<FetchStudentDetailsWithMarksAndDepartmentNames> fetchStudentDetailsWithMarksAndDepartmentList = studentDao
+				.studentDetailsWithMarksAndDepartment();
+		for (FetchStudentDetailsWithMarksAndDepartmentNames fetchStudentDetailsWithMarksAndDepartmentNames : fetchStudentDetailsWithMarksAndDepartmentList) {
+			/*
+			 * Set check for Duplicate Id and appends all the data in the Object List
+			 */
+			if (set.add(fetchStudentDetailsWithMarksAndDepartmentNames.getStudentId())) {
+				if (fetchStudentDetailsWithMarksAndDepartmentNamesWithNoReplications != null) {
+					setMarks.clear();
+					fetchStudentDetailsWithMarksAndDepartmentNamesWithNoReplications.setMarklist(studentMarkList);
+					listStudentDetailsWithMarksAndDepartment.add(fetchStudentDetailsWithMarksAndDepartmentNamesWithNoReplications);
+				}
+				fetchStudentDetailsWithMarksAndDepartmentNamesWithNoReplications = new FetchStudentDetailsWithMarksAndDepartmentNamesWithNoReplications();
+				studentMarkList = new ArrayList<StudentMarks>();
+				fetchStudentDetailsWithMarksAndDepartmentNamesWithNoReplications
+						.setStudentId(fetchStudentDetailsWithMarksAndDepartmentNames.getStudentId());
+				fetchStudentDetailsWithMarksAndDepartmentNamesWithNoReplications
+						.setAddress(fetchStudentDetailsWithMarksAndDepartmentNames.getAddress());
+				fetchStudentDetailsWithMarksAndDepartmentNamesWithNoReplications
+						.setCityNm(fetchStudentDetailsWithMarksAndDepartmentNames.getCityNm());
+				fetchStudentDetailsWithMarksAndDepartmentNamesWithNoReplications
+						.setName(fetchStudentDetailsWithMarksAndDepartmentNames.getName());
+
+			}
+			
+			StudentMarks studentMarks = new StudentMarks(fetchStudentDetailsWithMarksAndDepartmentNames.getTotalMarks(),
+					fetchStudentDetailsWithMarksAndDepartmentNames.getStage(),
+					fetchStudentDetailsWithMarksAndDepartmentNames.getMarksId());
+			if(setMarks.add(studentMarks.getMarksId())) {
+			if (fetchStudentDetailsWithMarksAndDepartmentNames.getTotalMarks() != null
+					|| fetchStudentDetailsWithMarksAndDepartmentNames.getStage() != null
+					|| fetchStudentDetailsWithMarksAndDepartmentNames.getMarksId() != null) {
+
+				studentMarkList.add(studentMarks);
+
+			}
+			}
+
+		}
+
+		fetchStudentDetailsWithMarksAndDepartmentNamesWithNoReplications.setMarklist(studentMarkList);
+		listStudentDetailsWithMarksAndDepartment.add(fetchStudentDetailsWithMarksAndDepartmentNamesWithNoReplications);
+
+		return listStudentDetailsWithMarksAndDepartment;
+	}
+
+}

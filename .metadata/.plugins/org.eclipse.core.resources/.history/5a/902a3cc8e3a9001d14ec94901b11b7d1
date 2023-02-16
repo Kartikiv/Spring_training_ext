@@ -1,0 +1,18 @@
+package com.student.data.beans;
+
+import java.util.List;
+
+public class FetchStudentDetailsWithMarksAndDepartmentNames {
+
+	private Long studentId;
+	private String name;
+	private String address;
+	private String cityNm;
+	private List<StudentMarks> marklist;
+	private Long studentId;
+	private String name;
+	private String address;
+	private String cityNm;
+	private List<StudentMarks> marklist;
+	
+}

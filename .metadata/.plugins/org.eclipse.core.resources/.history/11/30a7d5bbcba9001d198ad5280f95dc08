@@ -1,0 +1,436 @@
+package com.student.data.dao;
+
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.jdbc.core.namedparam.SqlParameterSourceUtils;
+import org.springframework.stereotype.Repository;
+
+import com.student.data.beans.FetchStudentDetails;
+import com.student.data.beans.FetchStudentDetailsWithMarksAndDepartment;
+import com.student.data.beans.InsertStudentDetails;
+import com.student.data.beans.StudentDto;
+import com.student.data.beans.UpdateStudentDetails;
+
+import jakarta.annotation.PostConstruct;
+
+@Repository
+public class StudentDaoImplementation implements StudentDao {
+	@Value("${queryForInsertStudentDetails}")
+	String queryForInsertStudentDetails;
+	@Value("${queryForUpdateStudentDetails}")
+	String queryForUpdateStudentDetails;
+	@Value("${queryForInsertJdbc}")
+	String queryForInsertJdbc;
+	@Value("${queryForInsertHistoryTable}")
+	String queryForInsertHistoryTable;
+	@Value("${queryForUpdateJdbc}")
+	String queryForUpdateJdbc;
+	@Value("${queryForInsertHistoryTableJdbc}")
+	String queryForInsertHistoryTableJdbc;
+	@Value("${queryForStudentDetailsUsingId}")
+	String queryForStudentDetailsUsingId;
+	@Value("${queryForStudentDetailsWithMarks}")
+	String queryForStudentDetailsWithMarks;
+	@Value("${queryForStudentDetailsUsingQuery}")
+	String queryForStudentDetailsUsingQuery;
+	@Autowired
+	NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+	@Autowired
+	JdbcTemplate jdbcTemplate;
+
+//	(:firstNm,:middleNm,:lastNm,:moblieNo,:address,:cityNm,:townNm,:districtNm,:villageNm,:birthDate,:orgId);
+	/**
+	 * Insert the Student Details using Map<String ,Object> as @param Source
+	 */
+	
+	
+	@Override
+	public Boolean insertStudentDetailsUsingMap(InsertStudentDetails insertStudentDetails) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("firstNm", insertStudentDetails.getFirstNm());
+		map.put("lastNm", insertStudentDetails.getLastNm());
+		map.put("middleNm", insertStudentDetails.getMiddleNm());
+		map.put("moblieNo", insertStudentDetails.getMoblieNo());
+		map.put("address", insertStudentDetails.getAddress());
+		map.put("cityNm", insertStudentDetails.getCityNm());
+		map.put("townNm", insertStudentDetails.getTownNm());
+		map.put("districtNm", insertStudentDetails.getDistrictNm());
+		map.put("villageNm", insertStudentDetails.getVillageNm());
+		map.put("birthDate", insertStudentDetails.getBirthDate());
+		map.put("orgId", insertStudentDetails.getOrgId());
+
+		return namedParameterJdbcTemplate.update(queryForInsertStudentDetails, map) > 0;
+	}
+
+	/**
+	 * Insert the Student Details using {@link MapSqlParameterSource} as @param
+	 * Source
+	 */
+	@Override
+	public Boolean insertStudentDetailsUsingMapSqlParam(InsertStudentDetails insertStudentDetails) {
+		MapSqlParameterSource map = new MapSqlParameterSource();
+		map.addValue("firstNm", insertStudentDetails.getFirstNm());
+		map.addValue("lastNm", insertStudentDetails.getLastNm());
+		map.addValue("middleNm", insertStudentDetails.getMiddleNm());
+		map.addValue("moblieNo", insertStudentDetails.getMoblieNo());
+		map.addValue("address", insertStudentDetails.getAddress());
+		map.addValue("cityNm", insertStudentDetails.getCityNm());
+		map.addValue("townNm", insertStudentDetails.getTownNm());
+		map.addValue("districtNm", insertStudentDetails.getDistrictNm());
+		map.addValue("villageNm", insertStudentDetails.getVillageNm());
+		map.addValue("birthDate", insertStudentDetails.getBirthDate());
+		map.addValue("orgId", insertStudentDetails.getOrgId());
+		return namedParameterJdbcTemplate.update(queryForInsertStudentDetails, map) > 0;
+	}
+
+	/**
+	 * Insert the Student Details using {@link BeanPropertySqlParameterSource}
+	 * as @param source
+	 */
+	@Override
+	public Boolean insertStudentDetailsUsingBeanProperySqlparam(InsertStudentDetails insertStudentDetails) {
+
+		return namedParameterJdbcTemplate.update(queryForInsertStudentDetails,
+				new BeanPropertySqlParameterSource(insertStudentDetails)) > 0;
+	}
+
+	public Boolean updateStudentDetails(UpdateStudentDetails updateStudentDetails) {
+		return namedParameterJdbcTemplate.update(queryForUpdateStudentDetails,
+				new BeanPropertySqlParameterSource(updateStudentDetails)) > 0;
+	}
+
+	// Used to create a new table if not exists in the database
+	// postconstruct method is run after all the beans are injected
+	@PostConstruct
+	@Override
+	public void test() {
+		Map<String, Object> map = null;
+		String create = "	create table if not exists student_details_trans(\r\n"
+				+ "student_id serial primary key,\r\n" + "first_nm varchar(255),\r\n" + "middle_nm varchar(255),\r\n"
+				+ "last_nm varchar(255),\r\n" + "mobile_nm varchar(255),\r\n" + "address text, \r\n"
+				+ "city_nm varchar(255),\r\n" + "town_nm  varchar(255),\r\n" + "district_nm  varchar(255),\r\n"
+				+ "village_nm   varchar(255),\r\n" + "birth_date  varchar(255),\r\n" + "org_id bigint,\r\n"
+				+ "isactive boolean default true,\r\n" + "\r\n" + "created_date timestamp  default now(),\r\n"
+				+ "modified_date timestamp,\r\n" + "version_inf int default 1) \r\n" + "";
+		namedParameterJdbcTemplate.update(create, map);
+		System.out.println(create);
+		System.out.println(queryForInsertStudentDetails);
+		System.out.println(queryForUpdateStudentDetails);
+
+	}
+
+	/**
+	 * Inserts multiple Rows of data in a single query using the
+	 * namedParameterJdbcTemplate and {@link MapSqlParameterSource} array as
+	 * the @param Source
+	 */
+	@Override
+	public Boolean batchUpdateStudentDetails(List<InsertStudentDetails> insertStudentDetailsList) {
+		MapSqlParameterSource[] batch = new MapSqlParameterSource[insertStudentDetailsList.size()];
+
+		int i = 0;
+		for (InsertStudentDetails insertStudentDetails : insertStudentDetailsList) {
+			MapSqlParameterSource map = new MapSqlParameterSource();
+			map.addValue("firstNm", insertStudentDetails.getFirstNm());
+			map.addValue("lastNm", insertStudentDetails.getLastNm());
+			map.addValue("middleNm", insertStudentDetails.getMiddleNm());
+			map.addValue("moblieNo", insertStudentDetails.getMoblieNo());
+			map.addValue("address", insertStudentDetails.getAddress());
+			map.addValue("cityNm", insertStudentDetails.getCityNm());
+			map.addValue("townNm", insertStudentDetails.getTownNm());
+			map.addValue("districtNm", insertStudentDetails.getDistrictNm());
+			map.addValue("villageNm", insertStudentDetails.getVillageNm());
+			map.addValue("birthDate", insertStudentDetails.getBirthDate());
+			map.addValue("orgId", insertStudentDetails.getOrgId());
+			batch[i] = map;
+			i++;
+		}
+		int[] result = namedParameterJdbcTemplate.batchUpdate(queryForInsertStudentDetails, batch);
+		return insertStudentDetailsList.size() == result.length;
+	}
+
+	/**
+	 * Batch Update using Jdbc Template And {@link BatchPreparedStatementSetter} as
+	 * the interface for setting the @param
+	 */
+	@Override
+	public Boolean batchUpdateUsingBatchSetter(List<InsertStudentDetails> insertStudentDetails) {
+		
+		int[] update = jdbcTemplate.batchUpdate(queryForInsertJdbc, new BatchPreparedStatementSetter() {
+			@Override
+			public void setValues(PreparedStatement ps, int i) throws SQLException {
+				InsertStudentDetails insert = insertStudentDetails.get(i);
+				ps.setString(1, insert.getFirstNm());
+				ps.setString(3, insert.getLastNm());
+				ps.setString(2, insert.getMiddleNm());
+				ps.setString(4, insert.getMoblieNo());
+				ps.setString(5, insert.getAddress());
+				ps.setString(6, insert.getCityNm());
+				ps.setString(7, insert.getTownNm());
+				ps.setString(8, insert.getDistrictNm());
+				ps.setString(9, insert.getVillageNm());
+				ps.setDate(10, insert.getBirthDate());
+				ps.setLong(11, insert.getOrgId());
+
+			}
+
+			@Override
+			public int getBatchSize() {
+
+				return insertStudentDetails.size();
+			}
+		});
+		
+		return update.length == insertStudentDetails.size();
+	}
+
+	/**
+	 * Batch update using SqlParameterSourceUtils.createBatch method to auto create
+	 * the {@link SqlParameterSource} array
+	 */
+	@Override
+	public Boolean batchUpdateUsingSqlParamSource(List<InsertStudentDetails> insertStudentDetails) {
+		SqlParameterSource batch[] = SqlParameterSourceUtils.createBatch(insertStudentDetails);
+		int[] result = namedParameterJdbcTemplate.batchUpdate(queryForInsertStudentDetails, batch);
+		return result.length == insertStudentDetails.size();
+	}
+
+	/**
+	 * Sub method of InsertOrUpdateUsingNamedParamJdbc
+	 */
+	@Override
+	public Boolean batchUpdateStudentDetailsCombination(SqlParameterSource updateBatch[]) {
+		// insertIntoHistoryTableJdbc(updateOp); is used here to insert the previous
+				// data to new
+				// table called the history table before updating details
+		insertIntoHistoryTable(updateBatch);
+
+		int[] result = namedParameterJdbcTemplate.batchUpdate(queryForUpdateStudentDetails, updateBatch);
+		return result.length == updateBatch.length;
+	}
+
+	/**
+	 * Sub method of InsertOrUpdateUsingNamedParamJdbc
+	 */
+	@Override
+	public Boolean batchUpdateStudentDetailsCombinationInsert(SqlParameterSource saveBatch[]) {
+
+		int[] result = namedParameterJdbcTemplate.batchUpdate(queryForInsertStudentDetails, saveBatch);
+		return result.length == saveBatch.length;
+	}
+
+	/**
+	 * 
+	 * Used insert Previous data into another table called History table
+	 */
+	public Boolean insertIntoHistoryTable(SqlParameterSource updateBatch[]) {
+
+		int[] result = namedParameterJdbcTemplate.batchUpdate(queryForInsertHistoryTable, updateBatch);
+		return result.length == updateBatch.length;
+	}
+
+	/**
+	 * Sub method of InsertOrUpdateUsingJdbctemplatte
+	 */
+	@Override
+	public Boolean batchUpdateStudentDetailsCombinationJdbc(List<StudentDto> updateOp) {
+		// insertIntoHistoryTableJdbc(updateOp); is used here to insert the previous
+		// data to new
+		// table called the history table before updating details
+		insertIntoHistoryTableJdbc(updateOp);
+		int[] update = jdbcTemplate.batchUpdate(queryForUpdateJdbc, new BatchPreparedStatementSetter() {
+
+			@Override
+			public void setValues(PreparedStatement ps, int i) throws SQLException {
+				StudentDto insert = updateOp.get(i);
+				ps.setString(1, insert.getFirstNm());
+				ps.setString(3, insert.getLastNm());
+				ps.setString(2, insert.getMiddleNm());
+				ps.setString(4, insert.getMobileNm());
+				ps.setString(5, insert.getAddress());
+				ps.setString(6, insert.getCityNm());
+				ps.setString(7, insert.getTownNm());
+				ps.setString(8, insert.getDistrictNm());
+				ps.setString(9, insert.getVillageNm());
+				ps.setDate(10, insert.getBirthDate());
+				ps.setLong(11, insert.getStudentId());
+				ps.setLong(12, insert.getOrgId());
+
+			}
+
+			@Override
+			public int getBatchSize() {
+
+				return updateOp.size();
+			}
+		});
+
+		return update.length == updateOp.size();
+
+	}
+
+	/**
+	 * Sub method of InsertOrUpdateUsingJdbctemplatte
+	 */
+	@Override
+	public Boolean batchUpdateStudentDetailsCombinationJdbcInsert(List<StudentDto> insertOp) {
+		int[] update = jdbcTemplate.batchUpdate(queryForInsertJdbc, new BatchPreparedStatementSetter() {
+
+			@Override
+			public void setValues(PreparedStatement ps, int i) throws SQLException {
+				StudentDto insert = insertOp.get(i);
+				ps.setString(1, insert.getFirstNm());
+				ps.setString(3, insert.getLastNm());
+				ps.setString(2, insert.getMiddleNm());
+				ps.setString(4, insert.getMobileNm());
+				ps.setString(5, insert.getAddress());
+				ps.setString(6, insert.getCityNm());
+				ps.setString(7, insert.getTownNm());
+				ps.setString(8, insert.getDistrictNm());
+				ps.setString(9, insert.getVillageNm());
+				ps.setDate(10, insert.getBirthDate());
+				ps.setLong(11, insert.getOrgId());
+			}
+
+			@Override
+			public int getBatchSize() {
+
+				return insertOp.size();
+			}
+		});
+
+		return update.length == insertOp.size();
+	}
+
+	// this method is executed when ever a update statement is run this stores
+	// previous data in a new table
+	// called the history table
+	public Boolean insertIntoHistoryTableJdbc(List<StudentDto> history) {
+
+		int[] update = jdbcTemplate.batchUpdate(queryForInsertHistoryTableJdbc, new BatchPreparedStatementSetter() {
+
+			@Override
+			public void setValues(PreparedStatement ps, int i) throws SQLException {
+				StudentDto insert = history.get(i);
+				ps.setLong(1, insert.getOrgId());
+				ps.setLong(2, insert.getStudentId());
+
+			}
+
+			@Override
+			public int getBatchSize() {
+
+				return history.size();
+			}
+		});
+		return update.length == history.size();
+	}
+
+	/**
+	 * Used to Fetch All the details of the Students Using id And OrgId isactive is
+	 * set as true queryFor Object Is used to Fetch the details
+	 */
+	@Override
+	public FetchStudentDetails fetchStudentDetailsUsingId(FetchStudentDetails fetchStudentDetails) {
+		System.out.println();
+		return namedParameterJdbcTemplate.queryForObject(queryForStudentDetailsUsingId,
+				new BeanPropertySqlParameterSource(fetchStudentDetails),
+				new BeanPropertyRowMapper<FetchStudentDetails>(FetchStudentDetails.class));
+	}
+
+	/**
+	 * Used to Fetch Details of Students Using all the Student Details or List of
+	 * Student Details And return an empty List if there are no Object returned From
+	 * the Query Here We Also Are using a Dynamic Query Approach explained Below
+	 */
+	@Override
+	public List<FetchStudentDetails> fetchStudentDetailsUsingQuery(FetchStudentDetails fetchStudentDetails) {
+		StringBuilder query = new StringBuilder(queryForStudentDetailsUsingQuery);
+		// Check if the Object the Required Fields and dynamically build the query
+		// orgId is always needed and isactive isactive set as true here
+		if (fetchStudentDetails.getStudentId() != null) {
+			query.append(" and student_id=:studentId");
+		}
+		if (fetchStudentDetails.getNm() != null) {
+			fetchStudentDetails.setNm("%" + fetchStudentDetails.getNm() + "%");
+			query.append(" and  concat(first_nm,' ',middle_nm,' ',last_nm) ilike :nm");
+		}
+		if (fetchStudentDetails.getAddress() != null) {
+			query.append(" and address=:address");
+		}
+		if (fetchStudentDetails.getBirthDate() != null) {
+			query.append(" and birth_date=:birthDate");
+		}
+		if (fetchStudentDetails.getCityNm() != null) {
+			query.append(" and city_nm=:cityNm");
+		}
+		if (fetchStudentDetails.getTownNm() != null) {
+			query.append(" and town_nm=:townNm");
+		}
+		if (fetchStudentDetails.getDistrictNm() != null) {
+			query.append(" and district_nm=:districtNm");
+		}
+		if (fetchStudentDetails.getVillageNm() != null) {
+			query.append(" and village_nm=:villageNm");
+		}
+		if (fetchStudentDetails.getMobileNm() != null) {
+			query.append(" and mobile_nm=:mobileNm");
+		}
+
+		String queryForStudentDetailsUsingQuer = query.toString();
+
+		return namedParameterJdbcTemplate.query(queryForStudentDetailsUsingQuer,
+				new BeanPropertySqlParameterSource(fetchStudentDetails),
+				new BeanPropertyRowMapper<FetchStudentDetails>(FetchStudentDetails.class));
+	}
+
+	/**
+	 * Used to Fetch Student Details using the query for Map and return as
+	 * Map<String,Object> Here if the name of object in the pojo and the name of
+	 * coloums of the database are same we can use
+	 * {@link com.fasterxml.jackson.databind.ObjectMapper} or we Have set It one by
+	 * One to the Pojo class
+	 */
+	@Override
+	public Map<String, Object> fetchStudentDetailsUsingQueryForMap(FetchStudentDetails fetchStudentDetails) {
+
+		return namedParameterJdbcTemplate.queryForMap(queryForStudentDetailsUsingId,
+				new BeanPropertySqlParameterSource(fetchStudentDetails));
+	}
+
+	/*
+	 * we have Used A join Statement and got the details of students and there marks
+	 * at the same tinme
+	 */
+	@Override
+	public List<FetchStudentDetailsWithMarksAndDepartment> studentDetailsWithMarks() {
+		return namedParameterJdbcTemplate.query(queryForStudentDetailsWithMarks,
+				new BeanPropertyRowMapper<FetchStudentDetailsWithMarksAndDepartment>(
+						FetchStudentDetailsWithMarksAndDepartment.class));
+
+	}
+
+	/*
+	 * we Have used query for List to get Student Using there Id
+	 */
+	@Override
+	public List<Map<String, Object>> fetchStudentDetailsUsingQueryForList(FetchStudentDetails fetchStudentDetails) {
+
+		return namedParameterJdbcTemplate.queryForList(queryForStudentDetailsUsingId,
+				new BeanPropertySqlParameterSource(fetchStudentDetails));
+	}
+
+}

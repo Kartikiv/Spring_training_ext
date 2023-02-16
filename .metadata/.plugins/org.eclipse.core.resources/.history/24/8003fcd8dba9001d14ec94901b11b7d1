@@ -1,0 +1,6 @@
+package com.student.data.beans;
+
+public class XrefInsert {
+private Long studentId;
+private Long departmentId;
+}

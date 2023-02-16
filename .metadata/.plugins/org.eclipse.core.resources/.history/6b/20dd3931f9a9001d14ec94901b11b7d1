@@ -1,0 +1,147 @@
+package com.student.data.controller;
+
+import java.util.List;
+import java.util.Map;
+
+import org.hl7.fhir.r4.model.Patient;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.student.data.beans.FetchStudentDetails;
+import com.student.data.beans.FetchStudentDetailsWithMarksAndDepartmentNamesWithNoReplications;
+import com.student.data.beans.FetchStudentDetailsWithMarksAndDepartmentWithNoReplications;
+import com.student.data.beans.InsertOrUpdateStudentDetails;
+import com.student.data.beans.InsertStudentDetails;
+import com.student.data.beans.InsertStudentDetailsWithDepartment;
+import com.student.data.beans.UpdateStudentDetails;
+import com.student.data.service.StudentService;
+
+import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.parser.IParser;
+
+@RestController
+public class StudentController {
+	@Autowired
+	StudentService studentService;
+
+	@GetMapping("/getpojo")
+	public InsertOrUpdateStudentDetails get(@RequestBody InsertOrUpdateStudentDetails InsertOrUpdateStudentDetails) {
+		return InsertOrUpdateStudentDetails;
+	}
+
+	@PostMapping("/studentdetailswithmarksanddepartment")
+	public List<FetchStudentDetailsWithMarksAndDepartmentNamesWithNoReplications> studentDetailsWithMarksAndDepartment() {
+		return studentService.studentDetailsWithMarksAndDepartment();
+	}
+
+	@PostMapping("/studentdetailswithmarks")
+	public List<FetchStudentDetailsWithMarksAndDepartmentWithNoReplications> studentDetailsWithMarks() {
+		return studentService.studentDetailsWithMarks();
+	}
+
+	@PostMapping("/fetchStudentDetailsUsingList")
+	public List<Map<String, Object>> fetchStudentDetailsUsingQueryForList(
+			@RequestBody FetchStudentDetails fetchStudentDetails) {
+		return studentService.fetchStudentDetailsUsingQueryForList(fetchStudentDetails);
+	}
+
+	@PostMapping("/fetchStudentDetailsUsingMap")
+	public ResponseEntity<Object> fetchStudentDetailsUsingMap(@RequestBody FetchStudentDetails fetchStudentDetails) {
+		return new ResponseEntity<Object>(studentService.fetchStudentDetailsUsingQueryForMap(fetchStudentDetails),
+				HttpStatus.ACCEPTED);
+	}
+
+	@PostMapping("/fetchstudentdetailsusingquery")
+	public ResponseEntity<Object> fetchStudentDetailsUsingQuery(@RequestBody FetchStudentDetails fetchStudentDetails) {
+		return new ResponseEntity<Object>(studentService.fetchStudentDetailsUsingQuery(fetchStudentDetails),
+				HttpStatus.ACCEPTED);
+	}
+
+	@PostMapping("/fetchstudentdetailsusingid")
+	public ResponseEntity<Object> fetchStudentDetailsUsingId(@RequestBody FetchStudentDetails FetchStudentDetails) {
+		return new ResponseEntity<Object>(studentService.fetchStudentDetailsUsingId(FetchStudentDetails),
+				HttpStatus.ACCEPTED);
+	}
+
+	@PostMapping("/insertorupdatestudentdetailsjdbc")
+	public Boolean insertOrUpdateStudentDetailsJdbc(
+			@RequestBody InsertOrUpdateStudentDetails insertOrUpdateStudentDetails) {
+		return studentService.insertOrUpdateStudentDetailsJdbc(insertOrUpdateStudentDetails);
+	}
+
+	@PostMapping("/insertorupdatestudentdetails")
+	public Boolean insertOrUpdateStudentDetails(
+			@RequestBody InsertOrUpdateStudentDetails insertOrUpdateStudentDetails) {
+		return studentService.insertOrUpdateStudentDetails(insertOrUpdateStudentDetails);
+	}
+
+	@PostMapping("/batchupdateusingsqlparam")
+	public Boolean batchUpdateUsingSqlParamSource(@RequestBody List<InsertStudentDetails> ins) {
+		return studentService.batchUpdateUsingSqlParamSource(ins);
+	}
+
+	@PostMapping("/batchjdbc")
+	public Boolean batchUpdateStudentsdetailsUsingSetter(@RequestBody List<InsertStudentDetails> ins) {
+		return studentService.batchUpdateUsingBatchSetter(ins);
+	}
+
+	@PostMapping("/batchupdatestudentdetails")
+	public Boolean batchUpdateStudentsdetails(@RequestBody List<InsertStudentDetails> ins) {
+		return studentService.batchUpdateStudentDetails(ins);
+	}
+
+	@PostMapping("/insertstudentdetailsusingmap")
+	public Boolean insertStudentDetailsUsingMap(@RequestBody InsertStudentDetails ins) {
+		return studentService.insertStudentDetailsUsingMap(ins);
+	}
+
+	@PostMapping("/insertstudentdetailsusingmapsqlParam")
+	public Boolean insertStudentDetailsUsingMapSqlParam(@RequestBody InsertStudentDetails ins) {
+		return studentService.insertStudentDetailsUsingMapSqlParam(ins);
+	}
+
+	@PostMapping("/insertstudentdetailsUsingbeanproperysqlparam")
+	public Boolean insertStudentDetailsUsingBeanProperySqlparam(@RequestBody InsertStudentDetails ins) {
+		return studentService.insertStudentDetailsUsingBeanProperySqlparam(ins);
+	}
+
+	@PutMapping("/updatestudentdetails")
+	public Boolean update(@RequestBody UpdateStudentDetails updateStudentDetails) {
+		System.out.println(updateStudentDetails.getStudentId());
+		return studentService.updateStudentDetails(updateStudentDetails);
+	}
+
+	@PostMapping("/key")
+	public Long insertWithKeyHolder(@RequestBody List<InsertStudentDetailsWithDepartment> ins) {
+		return studentService.insertStudentDetailsWithKeyHolder(ins);
+
+	}
+
+	@GetMapping("/inv")
+	public InsertStudentDetails get(@RequestBody InsertStudentDetails inv) {
+		return inv;
+	}
+
+	@GetMapping("/g")
+	public UpdateStudentDetails up(UpdateStudentDetails up) {
+		return up;
+	}
+
+	@GetMapping("/patient")
+	public String getPatient(Patient patient) {
+		FhirContext ctx = FhirContext.forR4();
+		patient = new Patient();
+		patient.addName().setFamily("FamilyName").addGiven("GivenName1").addGiven("GivenName2").addExtension()
+		.addChild("chldname");
+		IParser parser = ctx.newJsonParser();
+		String serialized = parser.encodeResourceToString(patient);
+		return serialized;
+	}
+
+}
