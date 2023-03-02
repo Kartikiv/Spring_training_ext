@@ -27,7 +27,7 @@ import com.itextpdf.text.pdf.PdfWriter;
 
 public class PDFGenerator {
 	public static ByteArrayInputStream generatePdf() throws DocumentException, MalformedURLException, IOException {
-	    String ARABIC="\u0627\u0644\u0633\u0639\u0631 \u0627\u0644\u0627\u062c\u0645\u0627\u0644\u064a";
+	    String ARABIC="النقاط";
 		Document document = new Document(PageSize.A4);
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		PdfWriter writer = PdfWriter.getInstance(document, out);
@@ -80,14 +80,14 @@ public class PDFGenerator {
 		PdfPTable table = new PdfPTable(2);
 		Paragraph paragraph = new Paragraph();
 		paragraph.setAlignment(Element.ALIGN_LEFT);
-		paragraph.add("orgId: 1");
+		paragraph.add(new Phrase("orgId: 1",f));
 		paragraph.add(Chunk.NEWLINE);
-		paragraph.add("name : Drucare");
+		paragraph.add(new Phrase("name : Drucare",f));
 		Paragraph paragraph2 = new Paragraph();
 		List list = new List();
 
 		paragraph2.setAlignment(Element.ALIGN_LEFT);
-		paragraph2.add("Patient Name: kartik");
+		paragraph2.add(new Phrase("Patient Name: kartik",f));
 		paragraph2.add(Chunk.NEWLINE);
         paragraph2.add("Doctor : Dr Ram Mohan");
 		paragraph2.add(Chunk.NEWLINE);
@@ -105,10 +105,10 @@ public class PDFGenerator {
 	   table.setTotalWidth(document.getPageSize().getWidth()-50);
 	   table.writeSelectedRows(0, -1, document.left()-1, document.top()-35,para);
 	  PdfPTable table1=new  PdfPTable(4);
-	  PdfPCell idCell=new PdfPCell(new Phrase("Service Id"));
-	  PdfPCell ServiceCell=new PdfPCell(new Phrase("Service Name"));
-	  PdfPCell quantiCell=new PdfPCell(new Phrase("Quantity"));
-	  PdfPCell priceCell=new PdfPCell(new Phrase("Price"));
+	  PdfPCell idCell=new PdfPCell(new Phrase("Service Id",f));
+	  PdfPCell ServiceCell=new PdfPCell(new Phrase("Service Name",f));
+	  PdfPCell quantiCell=new PdfPCell(new Phrase("Quantity",f));
+	  PdfPCell priceCell=new PdfPCell(new Phrase("Price",f));
 	  table1.addCell(idCell);
 	  table1.addCell(ServiceCell);
 	  table1.addCell(quantiCell);

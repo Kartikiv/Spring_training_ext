@@ -2,9 +2,11 @@ package com.student.data.controller;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.catalina.connector.Response;
 import org.hl7.fhir.r4.model.ContactPoint.ContactPointSystem;
 import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.Patient;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.itextpdf.text.DocumentException;
@@ -35,14 +38,23 @@ import com.student.data.service.StudentService;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
 public class StudentController {
 	@Autowired
 	StudentService studentService;
-
+    HttpServletResponse reponse=new Response();
+    
 	@GetMapping("/getpojo")
-	public InsertOrUpdateStudentDetails get(@RequestBody InsertOrUpdateStudentDetails InsertOrUpdateStudentDetails) {
+	public InsertOrUpdateStudentDetails get(HttpServletResponse request,@RequestBody InsertOrUpdateStudentDetails InsertOrUpdateStudentDetails) {
+		
+//		reponse.setStatus(HttpServletResponse.SC_ACCEPTED);
+//		reponse.setHeader("kar","ull");
+		
+		//reponse.getHeader("kar");
+
 		return InsertOrUpdateStudentDetails;
 	}
 
@@ -160,8 +172,7 @@ public class StudentController {
 		patient.addName().setFamily("FamilyName").addGiven("GivenName1").addGiven("GivenName2").setId("1")
 				.addExtension();
 		IParser parser = ctx.newJsonParser();
-		String serialized = parser.encodeResourceToString(patient);
-		return serialized;
+		return parser.encodeResourceToString(patient);
 	}
 	@GetMapping("/pdf")
 	public ResponseEntity<InputStreamResource> generatePdfReport() throws IOException, DocumentException {
@@ -179,7 +190,7 @@ public class StudentController {
 	}
 	@GetMapping("/html")
 	
-	public ResponseEntity<InputStreamResource> generatehtml() throws IOException, DocumentException {
+	public ResponseEntity<InputStreamResource> generatehtml() throws IOException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		HtmlConvert conv=new HtmlConvert();
 		 ByteArrayInputStream bis = conv.convert();
 		 HttpHeaders headers = new HttpHeaders();
