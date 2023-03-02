@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSourceUtils;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -251,6 +252,7 @@ public class StudentServiceImplementation implements StudentService {
 		
 		FetchStudentDetailsWithMarksAndDepartmentNamesWithNoReplications fetchStudentDetailsWithMarksAndDepartmentNamesWithNoReplications = null;
 		List<StudentMarks> studentMarkList = null;
+		
 		List<StudentDepartment>studentDepartmentList=null;
 		List<FetchStudentDetailsWithMarksAndDepartmentNames> fetchStudentDetailsWithMarksAndDepartmentList = studentDao
 				.studentDetailsWithMarksAndDepartment();
